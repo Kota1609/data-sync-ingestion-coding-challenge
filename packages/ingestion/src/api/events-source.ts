@@ -8,7 +8,7 @@ import { getAuthHeaders } from './middleware/auth.js';
 import { normalizePage } from '../mappers.js';
 import type { Logger } from '../logger.js';
 
-const FEED_PATH = '/events/d4ta/x7k9/feed';
+const FEED_PATH = '/api/v1/events/d4ta/x7k9/feed';
 
 export interface FetchPageParams {
   readonly limit: number;
