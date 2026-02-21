@@ -106,7 +106,7 @@ docker compose run --rm -e MODE=explore ingestion
 ## API Discoveries
 
 1. **Cursor structure**: base64url-encoded JSON `{id, ts, v, exp}` — position resolves by `ts`, enabling parallel partitioning via cursor forging
-2. **Stream endpoint**: `/events/d4ta/x7k9/feed` accessible via dashboard stream tokens from `POST /internal/dashboard/stream-access`
+2. **Stream endpoint**: `/api/v1/events/d4ta/x7k9/feed` accessible via dashboard stream tokens from `POST /internal/dashboard/stream-access`
 3. **Cursors expire**: forged cursors with far-future `exp` avoid mid-fetch expiry; recovery by re-forging from `lastTs`
 4. **Events are descending**: API returns events newest-first, so workers page backward through their partition
 5. **Rate limits**: `X-RateLimit-Remaining` and `X-RateLimit-Reset` headers present on responses
@@ -161,6 +161,17 @@ npm test
 - Events repo (UNNEST query construction)
 - Worker state repo (checkpoint save/load)
 - Worker integration (pagination, early stop, boundary filtering)
+
+## Results
+
+| Metric | Value |
+|---|---|
+| Total events ingested | 3,000,000 |
+| Time to complete + submit | 27 minutes |
+| Peak throughput | ~4,000 events/sec |
+| Workers | 8 parallel partitions |
+| Batch size | 5,000 events/page |
+| Resumability | Verified — restart picks up from checkpoints |
 
 ## What I'd Improve With More Time
 
