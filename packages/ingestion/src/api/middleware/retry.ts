@@ -13,16 +13,17 @@ export function parseRetryAfter(headers: Headers): number | null {
   const raw = headers.get('retry-after');
   if (raw === null) return null;
 
-  // Delta seconds
+  // Delta seconds (e.g. "5")
   const seconds = Number(raw);
-  if (Number.isFinite(seconds) && seconds > 0) {
-    return seconds * 1000;
+  if (Number.isFinite(seconds)) {
+    return seconds > 0 ? seconds * 1000 : null;
   }
 
-  // HTTP-date
+  // HTTP-date (e.g. "Thu, 01 Dec 2025 16:00:00 GMT")
   const date = Date.parse(raw);
   if (Number.isFinite(date)) {
-    return Math.max(0, date - Date.now());
+    const delayMs = date - Date.now();
+    return delayMs > 0 ? delayMs : null;
   }
 
   return null;
