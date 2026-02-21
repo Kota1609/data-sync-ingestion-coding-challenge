@@ -29,7 +29,6 @@ export function createEventsSource(
   logger: Logger,
 ): EventsSource {
   let streamDisabled = false;
-  let streamDisabledReason = '';
 
   async function fetchStreamPage(params: FetchPageParams): Promise<HttpResponse> {
     const access = await streamManager.get();
@@ -99,8 +98,8 @@ export function createEventsSource(
         } catch (retryErr) {
           // Fall back to standard endpoint
           streamDisabled = true;
-          streamDisabledReason = retryErr instanceof Error ? retryErr.message : String(retryErr);
-          logger.warn({ reason: streamDisabledReason }, 'Stream disabled, falling back to /api/v1/events');
+          const reason = retryErr instanceof Error ? retryErr.message : String(retryErr);
+          logger.warn({ reason }, 'Stream disabled, falling back to /api/v1/events');
 
           const fetchFn = withRetry(
             () => fetchFallbackPage(params),

@@ -41,15 +41,3 @@ export async function insertEvents(
     );
   }
 }
-
-/**
- * Get total count of ingested events.
- */
-export async function getIngestedCount(client: PoolClient): Promise<number> {
-  try {
-    const result = await client.query('SELECT COUNT(*)::int AS count FROM ingested_events');
-    return (result.rows[0] as { count: number }).count;
-  } catch (err) {
-    throw new DbError('Failed to get ingested count', 'getIngestedCount', err);
-  }
-}

@@ -50,10 +50,12 @@ export function createRateLimiter(logger: Logger): {
     const reset = headers.get('x-ratelimit-reset');
 
     if (remaining !== null) {
-      state.remaining = Number(remaining);
+      const val = Number(remaining);
+      if (Number.isFinite(val)) state.remaining = val;
     }
     if (limit !== null) {
-      state.limit = Number(limit);
+      const val = Number(limit);
+      if (Number.isFinite(val)) state.limit = val;
     }
     if (reset !== null) {
       const resetVal = Number(reset);
