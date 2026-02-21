@@ -84,7 +84,6 @@ export async function runWorker(
         break;
       }
       // Skip events at or above our end boundary (belong to next partition)
-      // Exception: last partition includes its endTs
       if (event.timestampMs >= chunkEndTs) continue;
       filtered.push(event);
     }
@@ -114,7 +113,7 @@ export async function runWorker(
           cursor,
           lastTs,
           fetchedCount,
-          insertedCount: insertedCount + filtered.length,
+          insertedCount,
           status: WS.RUNNING,
         },
       });

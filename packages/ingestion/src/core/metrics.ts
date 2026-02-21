@@ -2,7 +2,6 @@ import type { MetricsSnapshot, WorkerMetrics, WorkerStatus } from '../types.js';
 
 export interface Metrics {
   readonly updateWorker: (workerId: number, fetched: number, inserted: number, status: WorkerStatus) => void;
-  readonly addInserted: (count: number) => void;
   readonly getSnapshot: () => MetricsSnapshot;
   readonly getWorkerStatuses: () => readonly WorkerMetrics[];
   readonly getTotalInserted: () => number;
@@ -15,7 +14,6 @@ const TARGET_EVENTS = 3_000_000;
 export function createMetrics(_partitionCount: number): Metrics {
   const startTime = Date.now();
   const workers = new Map<number, WorkerMetrics>();
-  let totalInserted = 0;
   let lastThroughputCalcMs = startTime;
   let lastInsertedAtCalc = 0;
   let throughputEma: number | null = null;
@@ -38,10 +36,6 @@ export function createMetrics(_partitionCount: number): Metrics {
       fetchMsEma: null,
       dbTxMsEma: null,
     });
-  }
-
-  function addInserted(count: number): void {
-    totalInserted += count;
   }
 
   function recalcThroughput(): number {
@@ -67,7 +61,7 @@ export function createMetrics(_partitionCount: number): Metrics {
     for (const w of workers.values()) {
       total += w.insertedCount;
     }
-    return total || totalInserted;
+    return total;
   }
 
   function getThroughputEps(): number {
@@ -106,7 +100,6 @@ export function createMetrics(_partitionCount: number): Metrics {
 
   return {
     updateWorker,
-    addInserted,
     getSnapshot,
     getWorkerStatuses,
     getTotalInserted,

@@ -46,7 +46,7 @@ export function createTimestampChunks(
   for (let i = 0; i < count; i++) {
     const chunkStart = Math.floor(startTs + width * i);
     const chunkEnd = i === count - 1
-      ? endTs
+      ? endTs + 1  // Last partition uses exclusive upper bound to include events at endTs
       : Math.floor(startTs + width * (i + 1));
 
     chunks.push({ startTs: chunkStart, endTs: chunkEnd });

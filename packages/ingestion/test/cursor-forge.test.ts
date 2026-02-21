@@ -44,7 +44,8 @@ describe('createTimestampChunks', () => {
     const chunks = createTimestampChunks(1000, 2000, 4);
     expect(chunks).toHaveLength(4);
     expect(chunks[0]!.startTs).toBe(1000);
-    expect(chunks[3]!.endTs).toBe(2000);
+    // Last chunk endTs is endTs+1 (exclusive upper bound includes endTs events)
+    expect(chunks[3]!.endTs).toBe(2001);
   });
 
   it('covers the full range without gaps', () => {
@@ -54,13 +55,13 @@ describe('createTimestampChunks', () => {
     expect(chunks[1]!.startTs).toBe(1000);
     expect(chunks[1]!.endTs).toBe(2000);
     expect(chunks[2]!.startTs).toBe(2000);
-    expect(chunks[2]!.endTs).toBe(3000);
+    expect(chunks[2]!.endTs).toBe(3001); // Last chunk inclusive of endTs
   });
 
   it('handles a single partition', () => {
     const chunks = createTimestampChunks(100, 200, 1);
     expect(chunks).toHaveLength(1);
     expect(chunks[0]!.startTs).toBe(100);
-    expect(chunks[0]!.endTs).toBe(200);
+    expect(chunks[0]!.endTs).toBe(201); // Inclusive of endTs
   });
 });

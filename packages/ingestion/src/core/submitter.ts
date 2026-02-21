@@ -46,5 +46,6 @@ export async function submitResults(
     }, 'Submission complete');
   } catch (err) {
     logger.error({ err }, 'Submission failed');
+    throw err;
   }
 }

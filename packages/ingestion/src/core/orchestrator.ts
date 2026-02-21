@@ -125,8 +125,15 @@ export function createOrchestrator(deps: OrchestratorDeps): Orchestrator {
       });
     });
 
+    let workerFailures: PromiseRejectedResult[] = [];
     try {
-      await Promise.all(workerPromises);
+      const results = await Promise.allSettled(workerPromises);
+      workerFailures = results.filter(
+        (r): r is PromiseRejectedResult => r.status === 'rejected',
+      );
+      for (const f of workerFailures) {
+        logger.error({ reason: f.reason }, 'Worker failed');
+      }
     } finally {
       clearInterval(progressInterval);
       // Drain remaining writes even if a worker failed
@@ -135,6 +142,15 @@ export function createOrchestrator(deps: OrchestratorDeps): Orchestrator {
 
     // 10. Final progress log
     const finalSnapshot = metrics.getSnapshot();
+
+    if (workerFailures.length > 0) {
+      logger.error({
+        totalInserted: finalSnapshot.totalInserted,
+        failedWorkers: workerFailures.length,
+      }, `${workerFailures.length} worker(s) failed`);
+      throw new Error(`${workerFailures.length} worker(s) failed during ingestion`);
+    }
+
     logger.info({
       totalInserted: finalSnapshot.totalInserted,
       throughputEps: Math.round(finalSnapshot.throughputEps),
