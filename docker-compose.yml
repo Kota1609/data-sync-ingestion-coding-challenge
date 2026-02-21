@@ -1,0 +1,63 @@
+# This is your workspace for the assignment.
+# PostgreSQL is provided for your solution.
+# Add your services as needed.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: assignment-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ingestion
+    ports:
+      - "5434:5432"
+    volumes:
+      - assignment_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - assignment-network
+
+  ingestion:
+    build: ./packages/ingestion
+    container_name: assignment-ingestion
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ingestion
+      API_BASE_URL: ${API_BASE_URL:-http://datasync-dev-alb-101078500.us-east-1.elb.amazonaws.com/api/v1}
+      TARGET_API_KEY: ${TARGET_API_KEY}
+      MODE: ${MODE:-ingest}
+      PARTITION_COUNT: ${PARTITION_COUNT:-8}
+      BATCH_SIZE: ${BATCH_SIZE:-5000}
+      DB_WRITE_CONCURRENCY: ${DB_WRITE_CONCURRENCY:-2}
+      MAX_PENDING_WRITES: ${MAX_PENDING_WRITES:-100}
+      PG_SYNC_COMMIT: ${PG_SYNC_COMMIT:-off}
+      HEALTH_PORT: "8080"
+      AUTO_SUBMIT: ${AUTO_SUBMIT:-false}
+      GITHUB_REPO_URL: ${GITHUB_REPO_URL:-}
+      MIN_TIMESTAMP_MS: ${MIN_TIMESTAMP_MS:-1766700000000}
+      MAX_TIMESTAMP_MS: ${MAX_TIMESTAMP_MS:-1769900000000}
+      PROGRESS_LOG_INTERVAL_MS: ${PROGRESS_LOG_INTERVAL_MS:-15000}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - assignment-network
+
+volumes:
+  assignment_postgres_data:
+
+networks:
+  assignment-network:
+    driver: bridge
