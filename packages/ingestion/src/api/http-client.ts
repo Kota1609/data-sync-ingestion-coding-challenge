@@ -35,15 +35,22 @@ export function createHttpClient(config: AppConfig): HttpClient {
       ...extraHeaders,
     };
 
-    if (body !== undefined) {
+    // Only set Content-Type if not already provided by caller
+    if (body !== undefined && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
+    }
+
+    // Serialize body: JSON.stringify for objects, pass strings as-is
+    let serializedBody: string | undefined;
+    if (body !== undefined) {
+      serializedBody = typeof body === 'string' ? body : JSON.stringify(body);
     }
 
     try {
       const response = await fetch(url, {
         method,
         headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: serializedBody,
         signal: controller.signal,
         dispatcher,
       } as unknown as RequestInit);

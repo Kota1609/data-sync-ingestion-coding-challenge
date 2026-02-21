@@ -40,6 +40,12 @@ export function loadConfig(): AppConfig {
     throw new Error(`PG_SYNC_COMMIT must be "on" or "off", got: ${pgSyncCommit}`);
   }
 
+  const minTimestampMs = getIntEnv('MIN_TIMESTAMP_MS', 1766700000000);
+  const maxTimestampMs = getIntEnv('MAX_TIMESTAMP_MS', 1769900000000);
+  if (minTimestampMs >= maxTimestampMs) {
+    throw new Error(`MIN_TIMESTAMP_MS (${minTimestampMs}) must be less than MAX_TIMESTAMP_MS (${maxTimestampMs})`);
+  }
+
   return {
     databaseUrl: mustGetEnv('DATABASE_URL'),
     apiBaseUrl: normalizeApiBaseUrl(mustGetEnv('API_BASE_URL')),
@@ -53,8 +59,8 @@ export function loadConfig(): AppConfig {
     healthPort: getIntEnv('HEALTH_PORT', 8080),
     autoSubmit: getBoolEnv('AUTO_SUBMIT', false),
     githubRepoUrl: getEnv('GITHUB_REPO_URL', ''),
-    minTimestampMs: getIntEnv('MIN_TIMESTAMP_MS', 1766700000000),
-    maxTimestampMs: getIntEnv('MAX_TIMESTAMP_MS', 1769900000000),
+    minTimestampMs,
+    maxTimestampMs,
     progressLogIntervalMs: getIntEnv('PROGRESS_LOG_INTERVAL_MS', 15000),
     requestTimeoutMs: getIntEnv('REQUEST_TIMEOUT_MS', 45000),
     maxRetries: getIntEnv('MAX_RETRIES', 8),

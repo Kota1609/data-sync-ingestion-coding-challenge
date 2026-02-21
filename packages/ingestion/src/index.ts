@@ -102,15 +102,17 @@ async function main(): Promise<void> {
   process.on('SIGTERM', () => { void gracefulShutdown('SIGTERM'); });
   process.on('SIGINT', () => { void gracefulShutdown('SIGINT'); });
 
-  // Run ingestion
-  await orchestrator.run();
+  try {
+    // Run ingestion
+    await orchestrator.run();
 
-  // Auto-submit if configured
-  await submitResults(pool, httpClient, config, logger);
-
-  // Cleanup
-  if (healthServer) healthServer.close();
-  await pool.end();
+    // Auto-submit if configured
+    await submitResults(pool, httpClient, config, logger);
+  } finally {
+    // Guaranteed cleanup even on errors
+    if (healthServer) healthServer.close();
+    if (pool) await pool.end();
+  }
 }
 
 main().catch((err) => {

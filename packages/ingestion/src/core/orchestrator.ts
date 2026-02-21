@@ -129,10 +129,9 @@ export function createOrchestrator(deps: OrchestratorDeps): Orchestrator {
       await Promise.all(workerPromises);
     } finally {
       clearInterval(progressInterval);
+      // Drain remaining writes even if a worker failed
+      await dbQueue.drain();
     }
-
-    // 9. Drain remaining writes
-    await dbQueue.drain();
 
     // 10. Final progress log
     const finalSnapshot = metrics.getSnapshot();
